@@ -101,23 +101,22 @@ def decode_dns_message(message):
 # =============================================================================
 #     print('\n\t\t###[ DNS ]###')
 # =============================================================================
-    print('\t\t\tid: {}'.format(hex(id)))
-    print('\t\t\tIs response: {}'.format(qr))
-    print('\t\t\tOpcode: {}'.format(opcode))
-    print('\t\t\tIs authoritative: {}'.format(aa))
-    print('\t\t\tIs truncated: {}'.format(tc))
-    print('\t\t\tRecursion desired: {}'.format(rd))
-    print('\t\t\tRecursion available: {}'.format(ra))
-    print('\t\t\tReserved: {}'.format(z))
-    print('\t\t\tResponse code: {}'.format(rcode))
-    print('\t\t\tQuestion count: {}'.format(qdcount))
-    print('\t\t\tAnswer count: {}'.format(ancount))
-    print('\t\t\tAuthority count: {}'.format(nscount))
-    print('\t\t\tAdditional count: {}'.format(arcount))
+    dnsString = '\t\t\tid: {}\n'.format(hex(id)) + \
+    '\t\t\tIs response: {}\n'.format(qr) + '\t\t\tOpcode: {}\n'.format(opcode) \
+     +'\t\t\tIs authoritative: {}\n'.format(aa) \
+    +'\t\t\tIs truncated: {}\n'.format(tc) \
+    +'\t\t\tRecursion desired: {}\n'.format(rd) \
+    +'\t\t\tRecursion available: {}\n'.format(ra) \
+    +'\t\t\tReserved: {}\n'.format(z) \
+    +'\t\t\tResponse code: {}\n'.format(rcode) \
+    +'\t\t\tQuestion count: {}\n'.format(qdcount) \
+    +'\t\t\tAnswer count: {}\n'.format(ancount) \
+    +'\t\t\tAuthority count: {}\n'.format(nscount) \
+    +'\t\t\tAdditional count: {}\n'.format(arcount)
     #print('\t\t\tquestions: {}'.format(questions))
 # =============================================================================
 # =============================================================================
-    return questions
+    return questions, dnsString
 if __name__ == '__main__':
 
     #host = "192.168.181.199"
@@ -194,17 +193,15 @@ if __name__ == '__main__':
             #IPv4target = '.'.join(map(str, IPv4target))
             ETCdata = IPv4data[IPv4header_length:]
 
+            strIpHeader = '\n###[ IP ]###\n' + '\tVersion: {} \n \tHeader Length: {} \n \tDifferentiated Services Field: {}'\
+                .format(IPv4ver, IPv4len, IPv4service) + '\tTotal Length: {} \n \tIdentification: {} \n \tFlags: {}'\
+                .format(IPv4total, IPv4id, IPv4flag) + '\tFragment offset: {} \n \tTime to live: {} \n \tProtocol: {}'\
+                .format(IPv4offset, IPv4ttl, IPv4type) + '\tHeader checksum status: {} \n \tSource: {} \n \tDestination: {}\n'\
+                .format(IPv4check_sum, IPv4src, IPv4dst)
+
             # ICMP
-            if IPv4type == 1 and filter_option.find('icmp') != -1:
-                print('\n###[ IP ]###')
-                print('\tVersion: {} \n \tHeader Length: {} \n \tDifferentiated Services Field: {}'.format(IPv4ver, IPv4len, IPv4service))
-                print('\tTotal Length: {} \n \tIdentification: {} \n \tFlags: {}'.format(IPv4total, IPv4id, IPv4flag))
-                print('\tFragment offset: {} \n \tTime to live: {} \n \tProtocol: {}'.format(IPv4offset, IPv4ttl, IPv4type))
-                print('\tHeader checksum status: {} \n \tSource: {} \n \tDestination: {}'.format(IPv4check_sum, IPv4src, IPv4dst))
-
-
+            if IPv4type == 1:
                 #ICMPtype, ICMPcode, ICMPchecksum = struct.unpack('! B B H', ETCdata[:4])
-
 
                 (ICMPtype,) = struct.unpack('!B', ETCdata[0:1])
                 (ICMPcode,) = struct.unpack('!B', ETCdata[1:2])
@@ -229,24 +226,15 @@ if __name__ == '__main__':
 
                 print('\tData: {}'.format(TEMPdata.decode('utf-8')))
                 """
-                strICMP = '\n###[ ICMP ]###'
-                strICMP = strICMP + '\tType: {} \n \tCode: {} \n \tChecksum: {}'.format(ICMPtype, ICMPcode, ICMPchecksum)
-                strICMP = strICMP + '\tIdentifier (BE): {} \n \tSequence number (BE): {}'.format(ICMPidentifier_be, ICMPidentifier_le)
-                strICMP = strICMP + '\tIdentifier (LE): {} \n \tSequence number (LE): {}'.format(ICMPsequence_be, ICMPsequence_le)
-                strICMP = strICMP + '\tData: {}'.format(TEMPdata.decode('utf-8'))
-
+                strIcmpHeader = '\n###[ ICMP ]###\n' + '\tType: {} \n \tCode: {} \n \tChecksum: {}'\
+                    .format(ICMPtype, ICMPcode, ICMPchecksum) + '\tIdentifier (BE): {} \n \tSequence number (BE): {}'\
+                    .format(ICMPidentifier_be, ICMPidentifier_le) + '\tIdentifier (LE): {} \n \tSequence number (LE): {}\n'\
+                    .format(ICMPsequence_be, ICMPsequence_le) + '\tData: {}\n'.format(TEMPdata.decode('utf-8'))
 
                 #print('\tICMP Data:')
 
             # TCP
-            elif IPv4type == 6 and filter_option.find('tcp') != -1:
-
-                print('\n###[ IP ]###')
-                print('\tVersion: {} \n \tHeader Length: {} \n \tDifferentiated Services Field: {}'.format(IPv4ver, IPv4len, IPv4service))
-                print('\tTotal Length: {} \n \tIdentification: {} \n \tFlags: {}'.format(IPv4total, IPv4id, IPv4flag))
-                print('\tFragment offset: {} \n \tTime to live: {} \n \tProtocol: {}'.format(IPv4offset, IPv4ttl, IPv4type))
-                print('\tHeader checksum status: {} \n \tSource: {} \n \tDestination: {}'.format(IPv4check_sum, IPv4src, IPv4dst))
-
+            elif IPv4type == 6:
                 #TCPsrc_port, TCPdest_port, TCPsequence, TCPacknowledgment, \
                 #TCPoffset_reserved_flags = struct.unpack('! H H L L H', ETCdata[:14])
                 # 시퀀스넘버, 애크 넘버 다틀림 (틀린건지 표기방식이 다른건지?)
@@ -257,6 +245,7 @@ if __name__ == '__main__':
                 (TCPacknowledgment,) = struct.unpack('!L', ETCdata[8:12])
                 TCPlength = len(ETCdata)
                 #(TCPoffset,) = struct.unpack('!H', ETCdata[12:13])
+                (flags,) = struct.unpack('!H', ETCdata[12:14])
                 (flags,) = struct.unpack('!H', ETCdata[12:14])
                 (TCPflags,) = struct.unpack('!b', ETCdata[13:14])
                 TCPflags = hex(TCPflags)
@@ -287,27 +276,28 @@ if __name__ == '__main__':
                 # 윈도우사이즈, 체크섬 urgent pointer 추가
                 TEMPdata = ETCdata[TCPoffset:]
 
-                print('\n###[ TCP ]###')
-                print('\tSource Port: {} \n \tDestination Port: {}'.format(TCPsrc_port, TCPdest_port))
-                print('\tSequence number: {} \n \tAcknowledgment number: {}'.format(TCPsequence, TCPacknowledgment))
-                print('\tHeader Length: {} \n \tFlags: {}'.format(TCPlength, TCPflags))
-                print('\tReserved: {} \n \tNonce: {} \n \tCongestion Window Reduced: {}'.format(TCPflag_res, TCPflag_hs, TCPflag_cwr))
-                print('\tECN-Echo: {} \n \tUrgent: {} \n \tAcknowledgment:{}'.format(TCPflag_ece, TCPflag_urg, TCPflag_ack))
-                print('\tPush: {} \n \tReset: {} \n \tSyn: {} \n \tFin: {}'.format(TCPflag_psh, TCPflag_rst, TCPflag_syn, TCPflag_fin))
-                print('\tWindow size value: {} \n \tChecksum: {} \n \tUrgent pointer:{}'.format(TCPwindow, TCPchecksum, TCPurgptr))
+                strTcpHeader = '\n###[ TCP ]###\n' + '\tSource Port: {} \n \tDestination Port: {}'\
+                    .format(TCPsrc_port, TCPdest_port) + '\tSequence number: {} \n \tAcknowledgment number: {}'\
+                    .format(TCPsequence, TCPacknowledgment) + '\tHeader Length: {} \n \tFlags: {}'\
+                    .format(TCPlength, TCPflags) + '\tReserved: {} \n \tNonce: {} \n \tCongestion Window Reduced: {}'\
+                    .format(TCPflag_res, TCPflag_hs, TCPflag_cwr) + '\tECN-Echo: {} \n \tUrgent: {} \n \tAcknowledgment:{}'\
+                    .format(TCPflag_ece, TCPflag_urg, TCPflag_ack) + '\tPush: {} \n \tReset: {} \n \tSyn: {} \n \tFin: {}'\
+                    .format(TCPflag_psh, TCPflag_rst, TCPflag_syn, TCPflag_fin) + '\tWindow size value: {} \n \tChecksum: {} \n \tUrgent pointer:{}\n'\
+                    .format(TCPwindow, TCPchecksum, TCPurgptr)
 
+                strHttpHeader = ""
                 if len(TEMPdata) > 0:
+
 
                     if (TCPsrc_port == 80 or TCPdest_port == 80 \
                     or TCPsrc_port == 443 or TCPdest_port == 443) and filter_option.find('http') != -1:
 
                         if TCPsrc_port == 80 or TCPdest_port == 80:
-
-                            print('\n\t###[ HTTP ]###')
+                            strHttpHeader = strHttpHeader + '\n\t###[ HTTP ]###\n'
 
                         if TCPsrc_port == 443 or TCPdest_port == 443:
+                            strHttpHeader = '\n\t###[ HTTPS ]###\n'
 
-                            print('\n\t###[ HTTPS ]###')
                         try:
                             try:
                                 HTTPdata = TEMPdata.decode('utf-8')
@@ -315,7 +305,8 @@ if __name__ == '__main__':
                                 HTTPdata = TEMPdata
                             http_info = str(HTTPdata).split('\n')
                             for line in http_info:
-                                print('\t\t' + str(line))
+                                ad=  '\t\t' +str(line) + "\n"
+                                strHttpHeader = strHttpHeader + ad
                         except:
                             size = 80
                             size -= len('\t\t')
@@ -323,7 +314,7 @@ if __name__ == '__main__':
                                 joinPdata = ''.join(r'\x{:02x}'.format(byte) for byte in TEMPdata)
                                 if size % 2:
                                     size -= 1
-                            print('\n'.join(['\t\t' + line for line in textwrap.wrap(joinPdata, size)]))
+                            strHttpHeader = strHttpHeader + '\n'.join(['\t\t' + line for line in textwrap.wrap(joinPdata, size)])
                             #print('HTTPS:' + str(TEMPdata))
 
                     else:
@@ -336,13 +327,8 @@ if __name__ == '__main__':
                             if size % 2:
                                 size -= 1
                         #print('\n'.join(['\t' + line for line in textwrap.wrap(TEMPdata, size)]))
-
-            elif IPv4type == 17 and filter_option.find('udp') != -1:
-                print('\n###[ IP ]###')
-                print('\tVersion: {} \n \tHeader Length: {} \n \tDifferentiated Services Field: {}'.format(IPv4ver, IPv4len, IPv4service))
-                print('\tTotal Length: {} \n \tIdentification: {} \n \tFlags: {}'.format(IPv4total, IPv4id, IPv4flag))
-                print('\tFragment offset: {} \n \tTime to live: {} \n \tProtocol: {}'.format(IPv4offset, IPv4ttl, IPv4type))
-                print('\tHeader checksum status: {} \n \tSource: {} \n \tDestination: {}'.format(IPv4check_sum, IPv4src, IPv4dst))
+            #udp 경우
+            elif IPv4type == 17:
 
                 (UDPsrc_port,) = struct.unpack('! H', ETCdata[0:2])
                 (UDPdest_port,) = struct.unpack('! H', ETCdata[2:4])
@@ -351,9 +337,8 @@ if __name__ == '__main__':
                 UDPcheck_sum = hex(UDPcheck_sum)
                 TEMPdata = ETCdata[8:]
 
-                print('\n###[ UDP ]###')
-                print('\tSource Port: {} \n \tDestination Port: {} \n \tLength: {}'.format(UDPsrc_port, UDPdest_port, UDPsize))
-                print('\tChecksum: {}'.format(UDPcheck_sum))
+                strUdpHeader = '\n###[ UDP ]###\n' + '\tSource Port: {} \n \tDestination Port: {} \n \tLength: {}\n'\
+                    .format(UDPsrc_port, UDPdest_port, UDPsize) + '\tChecksum: {}\n'.format(UDPcheck_sum)
 
                 if filter_option.find('dns') != -1:
                     regDNS = re.compile('[^a-zA-Z0-9-@:%._\+~#=]')
@@ -363,35 +348,74 @@ if __name__ == '__main__':
                     #recvData = TEMPdata[13:].split(b'\x00', 1)
                     flag_QnA = recvHeader[1] & 0b1000000000000000
                     if flag_QnA == 0 :
-                        print('\n\t###[ DNS Query ]###')
+                        strDnsHeader = '\n\t###[ DNS Query ]###\n'
                     else :
-                        print('\n\t###[ DNS Response ]###')
-                    print('\t\tTime : ' + now)
-                    print('\t\tTransaction ID : ' + str(hex(recvHeader[0])))
-                    print('\t\tFlags : ' + str(hex(recvHeader[1])))
-                    print('\t\tQuestions : ', recvHeader[2])
-                    print('\t\tAnswer RR : ', recvHeader[3])
-                    print('\t\tAuthority RRs: ', recvHeader[4])
-                    print('\t\tAdditional RRs: ', recvHeader[5])
+                        strDnsHeader = '\n\t###[ DNS Response ]###\n'
+                    strDnsHeader = strDnsHeader + '\t\tTime : ' + now + '\n\t\tTransaction ID : ' + str(hex(recvHeader[0])) + '\n\t\tFlags : ' \
+                                   + str(hex(recvHeader[1])) + '\n\t\tQuestions : ' + str(recvHeader[2])+ '\n\t\tAnswer RR : ' \
+                                   + str(recvHeader[3]) + '\n\t\tAuthority RRs: ' +  str(recvHeader[4]) + '\n\t\tAdditional RRs: '\
+                                   + str(recvHeader[5]) + "\n"
+
                     # ㅡㅡㅡㅡ 여기까지 Domain Name System
 
                     if (UDPsrc_port == 53 or UDPdest_port == 53) and filter_option.find('dns') != -1:
-                        print('\n\t\t###[ DNS ]###')
-                        dnsquery = decode_dns_message(TEMPdata)
-                        print('\n\t\t\t###[ DNS Queries ]###')
+                        strDnsHeader = strDnsHeader + '\n\t\t###[ DNS ]###\n'
+                        dnsquery, dnsString = decode_dns_message(TEMPdata)
+                        strDnsHeader = strDnsHeader + dnsString
+                        strDnsHeader = strDnsHeader + '\n\t\t\t###[ DNS Queries ]###\n' + '\t\t\t\tDomain name: '
+                        #print('\n\t\t\t###[ DNS Queries ]###')
                         domain_name = [dnsquery[0]['domain_name'][i].decode('utf-8') for i, _ in enumerate(dnsquery[0]['domain_name'])]
-                        print('\t\t\t\tDomain name: ', end='')
+                        #print('\t\t\t\tDomain name: ', end='')
                         for i, v in enumerate(domain_name):
                             if i+1 == len(domain_name):
-                                print(v, end='')
+                                strDnsHeader = strDnsHeader + v
+                                #print(v, end='')
                             else:
-                                print(v, end='.')
+                                strDnsHeader = strDnsHeader + v + "."
+                                #print(v, end='.')
 
-                        print('\n\t\t\t\tQuery type: {}'.format(dnsquery[0]['query_type']))
-                        print('\t\t\t\tQuery class: {}'.format(dnsquery[0]['query_class']))
+                        strDnsHeader = strDnsHeader + '\n\t\t\t\tQuery type: {}\n'.format(dnsquery[0]['query_type']) +\
+                                       '\t\t\t\tQuery class: {}\n'.format(dnsquery[0]['query_class'])
+
+                        #print('\n\t\t\t\tQuery type: {}'.format(dnsquery[0]['query_type']))
+                        #print('\t\t\t\tQuery class: {}'.format(dnsquery[0]['query_class']))
                         #print('\t\t\t',str(TEMPdata))
                         # Queries랑 Authoritative nameservers를 추가로 추출해야됨
 
+            filter_option_list = filter_option.split(" ")
+            filter_count = 0
+            if IPv4type == 1 and filter_option_list[0].find('icmp') != -1:
+                if len(filter_option_list) == 1:
+                    print(strIpHeader, strIcmpHeader)
+                else:
+                    for i in range(1, len(filter_option_list)):
+                        if (strIcmpHeader.find(filter_option_list[i]) != -1) or (strIpHeader.find(filter_option_list[i]) != -1):
+                            filter_count += 1
+                    if filter_count == (len(filter_option_list) - 1):
+                        print(strIpHeader, strIcmpHeader)
+
+            elif IPv4type == 6 and filter_option_list[0].find('http') != -1:
+                if len(filter_option_list) == 1:
+                    print(strIpHeader, strTcpHeader, strHttpHeader)
+                else:
+                    for i in range(1, len(filter_option_list)):
+                        if (strTcpHeader.find(filter_option_list[i]) != -1) or (strIpHeader.find(filter_option_list[i]) != -1)\
+                                or (strHttpHeader.find(filter_option_list[i]) != -1):
+                            filter_count += 1
+                    if filter_count == (len(filter_option_list) - 1):
+                        print(strIpHeader, strTcpHeader, strHttpHeader)
+
+            elif IPv4type == 17 and filter_option_list[0].find('dns') != -1:
+                if len(filter_option_list) == 1:
+                    print(strIpHeader, strUdpHeader, strDnsHeader)
+                else:
+                    for i in range(1, len(filter_option_list)):
+                        if (strUdpHeader.find(filter_option_list[i]) != -1) or (strDnsHeader.find(filter_option_list[i]) != -1):
+                            filter_count += 1
+                    if filter_count == (len(filter_option_list) - 1):
+                        print(strIpHeader, strUdpHeader, strDnsHeader)
+
+            filter_count=0
         print('\n')
     except KeyboardInterrupt:
         if os.name == 'nt':
